@@ -1,19 +1,37 @@
 # Smart Healthcare Assistant
 
-This is a full-stack application for a Smart Healthcare Assistant, built with Django REST Framework for the backend, FastAPI for ML models, React for the frontend, and PostgreSQL as the database. Docker is used for containerization.
+This is a full-stack application designed to assist in healthcare management, featuring patient and doctor dashboards, disease prediction from symptoms, and X-ray classification.
 
 ## Project Structure
 
-- `backend/`: Django REST Framework application.
-- `ml-models/`: FastAPI applications for disease prediction and X-ray classification.
-- `frontend/`: React application.
-- `database/`: Contains the PostgreSQL schema.
-- `docker-compose.yml`: Defines and links all services.
+```
+smart-healthcare-assistant/
+├── backend/ (Django REST Framework)
+├── ml-models/ (Python + FastAPI)
+│   ├── disease_prediction/
+│   └── xray_classification/
+├── frontend/ (React + TailwindCSS)
+├── database/
+├── docker-compose.yml
+└── README.md
+```
 
-## Setup and Running
+## Technologies Used
+
+*   **Backend:** Django REST Framework (Python)
+    *   JWT Authentication
+    *   PostgreSQL Database
+*   **ML Models:** FastAPI (Python)
+    *   Disease Prediction (from symptoms)
+    *   X-ray Classification
+*   **Frontend:** React.js
+    *   TailwindCSS for styling
+*   **Containerization:** Docker & Docker Compose
+
+## Setup Instructions
 
 1.  **Prerequisites:**
-    - Docker and Docker Compose installed.
+    *   Docker Desktop installed and running.
 
 2.  **Clone the repository:**
     ```bash
@@ -26,47 +44,65 @@ This is a full-stack application for a Smart Healthcare Assistant, built with Dj
     docker-compose up --build
     ```
     This command will:
-    - Build Docker images for the backend, ML models, and frontend.
-    - Start all services (PostgreSQL database, Django backend, ML APIs, React frontend).
+    *   Build Docker images for the backend, frontend, and ML services.
+    *   Start all services, including the PostgreSQL database.
+    *   It might take a few minutes for all services to start up.
 
 4.  **Apply Django Migrations:**
-    Once the containers are up, you need to apply Django migrations to create the database tables.
-    Open a new terminal and run:
+    Once the `db` and `backend` services are running, you need to apply the database migrations. Open a new terminal in the project root and run:
     ```bash
-    docker-compose exec backend python manage.py makemigrations
-    docker-compose exec backend python manage.py migrate
+    docker-compose exec backend python backend/manage.py migrate
     ```
 
-5.  **Create a Django Superuser (Optional, for Admin Panel access):**
+5.  **Create a Django Superuser (Optional but Recommended):**
+    To access the Django admin panel, create a superuser:
     ```bash
-    docker-compose exec backend python manage.py createsuperuser
+    docker-compose exec backend python backend/manage.py createsuperuser
     ```
-    Follow the prompts to create a superuser.
+    Follow the prompts to create your superuser.
 
-6.  **Access the Application:**
-    - **Frontend (React):** Open your browser and go to `http://localhost:3000`
-    - **Backend (Django REST Framework):** API endpoints are available at `http://localhost:8000/api/`
-    - **ML Disease Prediction API:** `http://localhost:8001/predict`
-    - **ML X-ray Classification API:** `http://localhost:8002/classify`
-    - **Django Admin:** `http://localhost:8000/admin/`
+## Running the Application
 
-## Usage
+*   **Frontend:** Accessible at `http://localhost:3000`
+*   **Backend API:** Accessible at `http://localhost:8000`
+*   **ML Disease Prediction API:** Accessible at `http://localhost:5000`
+*   **ML X-ray Classification API:** Accessible at `http://localhost:5001`
+*   **Django Admin:** Accessible at `http://localhost:8000/admin/`
 
-- **Register:** Create new patient or doctor accounts via the frontend.
-- **Login:** Log in as a patient or doctor.
-- **Patient Dashboard:** Submit symptoms to get disease predictions.
-- **Doctor Dashboard:** Upload X-ray images for classification.
+## API Endpoints
 
-## Stopping the Application
+### Authentication
+*   `POST /api/patients/register/` - Register a new patient
+*   `POST /api/patients/login/` - Login a patient (returns JWT tokens)
+*   `POST /api/doctors/register/` - Register a new doctor
+*   `POST /api/doctors/login/` - Login a doctor (returns JWT tokens)
+*   `POST /api/token/refresh/` - Refresh JWT access token
 
-To stop all running containers, press `Ctrl+C` in the terminal where `docker-compose up` is running. To remove the containers and networks, run:
+### Patient Endpoints (Authentication Required)
+*   `POST /api/patients/submit-symptoms/` - Submit symptoms for disease prediction
 
-```bash
-docker-compose down
-```
+### Doctor Endpoints (Authentication Required)
+*   `POST /api/doctors/upload-xray/` - Upload X-ray image for classification
 
-To remove volumes (which will delete your database data), add the `-v` flag:
+## Frontend Usage
 
-```bash
-docker-compose down -v
-```
+1.  **Register:** Navigate to `http://localhost:3000/register` to create a new patient or doctor account.
+2.  **Login:** Use your registered credentials at `http://localhost:3000/login`.
+3.  **Patient Dashboard:** After logging in as a patient, you will be redirected to the patient dashboard where you can input symptoms and get disease predictions.
+4.  **Doctor Dashboard:** After logging in as a doctor, you will be redirected to the doctor dashboard where you can upload X-ray images for classification.
+
+## Database Access
+
+The PostgreSQL database is running in a Docker container. You can connect to it using the following details:
+*   **Host:** `localhost`
+*   **Port:** `5432`
+*   **Database:** `postgres`
+*   **User:** `postgres`
+*   **Password:** `postgres`
+
+## ML Models (Placeholder)
+
+The `ml-models` directory contains placeholder FastAPI applications for disease prediction and X-ray classification. These models currently return dummy predictions. For a production environment, you would replace these with trained machine learning models.
+
+*   `ml-models/disease_prediction/api.py`: Simulates disease prediction.
+*   `ml-models/xray_classification/api.py`: Simulates X-ray image classification.

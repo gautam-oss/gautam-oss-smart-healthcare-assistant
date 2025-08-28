@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - healthcare_network
+
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
+    depends_on:
+      - db
+      - ml-disease-api
+      - ml-xray-api
+    networks:
+      - healthcare_network
+
+  ml-disease-api:
+    build: ./ml-models/disease_prediction
+    command: uvicorn api:app --host 0.0.0.0 --port 5000
+    volumes:
+      - ./ml-models/disease_prediction:/app
+    ports:
+      - "5000:5000"
+    networks:
+      - healthcare_network
+
+  ml-xray-api:
+    build: ./ml-models/xray_classification
+    command: uvicorn api:app --host 0.0.0.0 --port 5000
+    volumes:
+      - ./ml-models/xray_classification:/app
+    ports:
+      - "5001:5000" # Mapping to 5001 to avoid port conflict with disease_prediction
+    networks:
+      - healthcare_network
+
+  frontend:
+    build: ./frontend
+    command: npm start
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Anonymous volume to prevent host node_modules from overwriting container's
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - healthcare_network
+
+volumes:
+  postgres_data:
+
+networks:
+  healthcare_network:
+    driver: bridge

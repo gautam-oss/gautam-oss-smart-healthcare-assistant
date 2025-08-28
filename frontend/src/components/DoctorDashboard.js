@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function DoctorDashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [classificationResult, setClassificationResult] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -25,7 +34,7 @@ function DoctorDashboard() {
     try {
       const token = localStorage.getItem('access_token'); // Assuming token is stored here
       const response = await axios.post(
-        'http://localhost:8000/api/reports/upload-xray/',
+        'http://localhost:8000/api/doctors/upload-xray/',
         formData,
         {
           headers: {
@@ -34,7 +43,7 @@ function DoctorDashboard() {
           },
         }
       );
-      setClassificationResult(response.data.classification);
+      setClassificationResult(response.data.prediction); // Changed from .classification to .prediction
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred during upload.');
     }

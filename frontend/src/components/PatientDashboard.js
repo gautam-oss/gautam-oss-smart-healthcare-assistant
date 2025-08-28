@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function PatientDashboard() {
   const [symptoms, setSymptoms] = useState('');
   const [prediction, setPrediction] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,7 +23,7 @@ function PatientDashboard() {
     try {
       const token = localStorage.getItem('access_token'); // Assuming token is stored here
       const response = await axios.post(
-        'http://localhost:8000/api/reports/submit-symptoms/',
+        'http://localhost:8000/api/patients/submit-symptoms/',
         { symptoms },
         {
           headers: {

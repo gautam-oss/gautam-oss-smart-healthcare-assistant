@@ -1,25 +1,29 @@
-from fastapi import FastAPI, UploadFile, File
-import uvicorn
+from fastapi import FastAPI, File, UploadFile
+from pydantic import BaseModel
+import base64
+import io
+from PIL import Image
 
 app = FastAPI()
 
-@app.post("/classify")
-async def classify_xray(file: UploadFile = File(...)):
-    # In a real application, load your model (e.g., xray_model.h5) here
-    # and use it to classify the uploaded image.
-    # For now, a dummy classification
-    content = await file.read()
-    # You would process 'content' (the image bytes) with your ML model
+class ImageInput(BaseModel):
+    image: str # Base64 encoded image
 
-    # Dummy logic based on file name or size for demonstration
-    if "pneumonia" in file.filename.lower():
-        classification = "Pneumonia Detected"
-    elif "tumor" in file.filename.lower():
-        classification = "Tumor Detected"
-    else:
-        classification = "Normal"
+@app.post("/predict")
+async def classify_xray(input: ImageInput):
+    try:
+        # Decode the base64 image
+        image_bytes = base64.b64decode(input.image)
+        image = Image.open(io.BytesIO(image_bytes))
 
-    return {"filename": file.filename, "classification": classification, "confidence": 0.92}
+        # In a real application, load xray_model.h5 and make a prediction
+        # For now, return a dummy classification
+        # You might want to add more sophisticated dummy logic here
+        if image.width > 100 and image.height > 100: # Simple dummy check
+            prediction = "Normal Lung"
+        else:
+            prediction = "Pneumonia Detected"
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+        return {"prediction": prediction}
+    except Exception as e:
+        return {"error": f"Error processing image: {e}"}
